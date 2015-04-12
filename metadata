@@ -1,3 +1,0 @@
-Kellner,Datum,java.util.Date,FALSE,FALSE,null
-Kellner,Vorname,java.lang.String,FALSE,FALSE,null
-Kellner,id,java.lang.Integer,TRUE,FALSE,null

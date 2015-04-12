@@ -22,7 +22,7 @@ public class DBApp {
 	public static void createTable(String strTableName, Hashtable<String, String> htblColNameType, //remove static when not needed 
 			Hashtable<String, String> htblColNameRefs, String strKeyColName) throws DBAppException
 	{
-		createTable.createTable(strTableName, htblColNameType, htblColNameRefs, strKeyColName);
+		Table.createTable(strTableName, htblColNameType, htblColNameRefs, strKeyColName);
 	}
 	
 	public static void createIndex(String strTableName, String strColName) throws DBAppException
