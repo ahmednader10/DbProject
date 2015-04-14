@@ -1,15 +1,21 @@
 package mainClasses;
 
-import java.awt.List;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.security.acl.LastOwnerException;
+import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
-
+import java.util.List;
+import java.util.NoSuchElementException;
 import exceptions.DBAppException;
 
 public class Table implements Serializable{
@@ -18,17 +24,97 @@ public class Table implements Serializable{
 	static boolean metadataIsCreated = false;
 	
 
-	transient ArrayList<Page> pages; 
+	static transient ArrayList<Page> pages= new ArrayList<Page>(); 
+	static int pageCount = 0;
 	ArrayList<String> refs;
-	Page lastPage;
-	int recordsNumber;
+	static Page lastPage = null;
+	static int recordsNumber = 0;
+	static int noOfCols;
 	
 	public Table()
 	{
 		pages  = new ArrayList<Page>();
 		refs = new ArrayList<String>(); 
 	}
-	public static void createTable(String strTableName, Hashtable<String, String> htblColNameType, //remove static when not needed 
+	public static ArrayList ListofCols(String strTableName) {
+		BufferedReader fileReader = null;
+		String COMMA_DELIMITER = ",";
+		ArrayList cols = new ArrayList();
+		try
+		{
+			fileReader = new BufferedReader(new FileReader(metadata));
+		}
+		catch(Exception e)
+		{
+			
+			return null;
+			
+		}
+		try
+		{
+			String line = "";
+			while ((line = fileReader.readLine()) != null)
+			{
+				
+				String[] tokens = line.split(COMMA_DELIMITER);
+				if (tokens.length > 0)
+				{
+					if(tokens[0].equals(strTableName))
+					{
+						cols.add(tokens[1]);
+					}
+				}
+			}
+			return cols;
+		} 
+		catch(Exception e)
+		{
+			System.out.println("Error in CsvFileReader !!!");
+			e.printStackTrace();
+		}
+		return null;
+		
+		
+	}
+	public static boolean tableExists( String strTableName) {
+		BufferedReader fileReader = null;
+		String COMMA_DELIMITER = ",";
+		
+		try
+		{
+			fileReader = new BufferedReader(new FileReader(metadata));
+		}
+		catch(Exception e)
+		{
+			
+			return false;
+			
+		}
+		
+		try
+		{
+			String line = "";
+			while ((line = fileReader.readLine()) != null)
+			{
+				
+				String[] tokens = line.split(COMMA_DELIMITER);
+				if (tokens.length > 0)
+				{
+					if(tokens[0].equals(strTableName))
+					{
+						return true;
+					}
+				}
+			}
+		} 
+		catch(Exception e)
+		{
+			System.out.println("Error in CsvFileReader !!!");
+			e.printStackTrace();
+		}
+		return false;
+	}
+	public static void createTable(String strTableName, Hashtable<String, String> htblColNameType, 
 			Hashtable<String, String> htblColNameRefs, String strKeyColName) throws DBAppException
 	{
 		final String COMMA_DELIMITER = ",";
@@ -47,7 +133,7 @@ public class Table implements Serializable{
 	      l3.add(htblColNameType.get(key));
 	    }
 	    
-	    
+	    noOfCols = l1.size();
 	    	    
 	    Enumeration e2 = htblColNameRefs.keys();
 	    ArrayList<String> l2 = new ArrayList();
@@ -68,7 +154,7 @@ public class Table implements Serializable{
 		    	
 		    	fileWriter = new FileWriter(metadata, true);
 		    	metadataIsCreated = true;
-		    	//System.out.print(metadataIsCreated);
+		    	
 		    	
 		    	while(!htblColNameType.isEmpty())
 		    	{
@@ -115,15 +201,7 @@ public class Table implements Serializable{
 			    	{
 			    		fileWriter.append("null");
 			    	}
-			    	/*for(String x : l2)
-			    	{
-			    		if(x.equals(col))
-			    		{
-			    			
-			    			l2.remove(x);
-			    		}
-			    	}*/
-			    		
+			    	
 			    	htblColNameType.remove(col);
 			    	fileWriter.append(NEW_LINE_SEPARATOR);
 			    	
@@ -214,4 +292,121 @@ public class Table implements Serializable{
 			}
 		}
 	}
+	
+	public static void insertIntoTable(String strTableName, Hashtable<String, String> htblColNameValue) 
+	throws DBAppException, IOException
+	{
+		
+		
+		if (!tableExists(strTableName)) 
+		{
+			System.out.println("Table doesn't exist");
+			return;
+		}
+		else 
+		{
+			File file = null;
+			if (pages.isEmpty() || lastPage.isFull()) 
+			{
+				pageCount++;
+				Page x = new Page(strTableName + pageCount , noOfCols+1);
+				file = new File(strTableName + pageCount + ".ser");
+				lastPage = x;
+				pages.add(lastPage);
+			}
+			else 
+			{
+
+				file = new File(lastPage.name+".ser");
+				lastPage = IO.readPage(file);
+			}
+			
+			Enumeration e1 = htblColNameValue.keys();
+			List<String> Colname = new ArrayList();
+			List<String> Value = new ArrayList();
+			
+			if (lastPage.isEmpty())
+			  {
+				ArrayList cols = ListofCols(strTableName);
+				int j = 1;
+				for (int i = 0; i < cols.size(); i++) {
+					lastPage.records[0][j] = (String)cols.get(i);
+					j++;
+				}
+				 
+			  }
+					for (int i = 1; i < lastPage.records[0].length; i++) 
+					{
+							while (e1.hasMoreElements()) 
+							{
+								String key = (String) e1.nextElement();
+								  if (!colExists(strTableName, key))
+								  {
+									  System.out.println("Invalid column name" + key);
+									  return;  
+								  }
+								  
+											if (lastPage.records[0][i] == key)
+											lastPage.records[++recordsNumber][i] = htblColNameValue.get(key);
+				
+							}
+					}
+					
+					IO.savePage(lastPage, file);
+						      
+				}
+			
+						
+			
+			
+			
+			
+		}
+	
+	public static Page retrieve() 
+	{
+		File file = new File("Employee1.ser");
+		lastPage = (Page)IO.readPage(file);
+		return lastPage;
+	}
+	public static boolean colExists(String strTableName , String Colname) {
+		BufferedReader fileReader = null;
+		String COMMA_DELIMITER = ",";
+		
+		try
+		{
+			fileReader = new BufferedReader(new FileReader(metadata));
+		}
+		catch(Exception e)
+		{
+			
+			return false;
+			
+		}
+		
+		try
+		{
+			String line = "";
+			while ((line = fileReader.readLine()) != null)
+			{
+				
+				String[] tokens = line.split(COMMA_DELIMITER);
+				if (tokens.length > 0)
+				{
+					if(tokens[0].equals(strTableName))
+					{
+						if (tokens[1].equals(Colname))
+						return true;
+					}
+				}
+			}
+		} 
+		catch(Exception e)
+		{
+			System.out.println("Error in CsvFileReader !!!");
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 }

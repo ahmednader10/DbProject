@@ -3,6 +3,7 @@ package mainClasses;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import exceptions.DBAppException;
@@ -34,7 +35,7 @@ public class DBApp {
 	public static void insertIntoTable(String strTableName, Hashtable<String, String> htblColNameValue) throws 
 		DBAppException, IOException
 	{
-		//insertion.insertIntoTable(strTableName, htblColNameValue);
+		Table.insertIntoTable(strTableName, htblColNameValue);
 	}
 	
 	
@@ -75,7 +76,7 @@ public class DBApp {
 		
 		
 		h2.put("Country", "Country.ID");
-		//createTable("Employee", h1, h2, "ID");
+		createTable("Employee", h1, h2, "ID");
 		//System.out.println(tableExists("Employe"));
 		//System.out.println(colExists("Employee","I"));
 		
@@ -86,7 +87,27 @@ public class DBApp {
 		//h3.put("Dept", "java.util.String");
 		h3.put("Datum", "java.util.Date");
 		//h3.put("Stadt", "java.util.String");
-		createTable("Kellner", h3, h2, "id");
+		//createTable("Kellner", h3, h2, "id");
+		
+		
+		ArrayList cols = Table.ListofCols("Employee");
+		for (int i = 0; i < cols.size(); i++) 
+		{
+		//	System.out.println(cols.get(i));
+		}
+		
+		Hashtable h4 = new Hashtable();
+		h4.put("ID", "1");
+		h4.put("Name", "ahmed");
+		h4.put("Dept", "cs");
+		h4.put("Start_Date", "january");
+		h4.put("Country", "egypt");
+		
+		insertIntoTable("Employee", h4);
+		
+	//	Page page = Table.retrieve();
+	//	page.display();
+		
 	}
 	
 }

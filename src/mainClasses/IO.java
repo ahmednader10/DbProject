@@ -52,7 +52,7 @@ public class IO
 	
 	public static void main(String[]args)
 	{
-		Page p1 = new Page(5, 8);
+		Page p1 = new Page("omar" , 5);
 		File f1 = new File("omar");
 		
 		p1.records[0][0] = "omar";
@@ -61,5 +61,6 @@ public class IO
 		p1.records[1][1] = "karim";
 		
 		savePage(p1, f1);
+		System.out.println(p1.isFull());
 	}
 }
