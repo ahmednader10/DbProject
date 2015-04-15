@@ -22,6 +22,7 @@ public class IO
 			
 			out = new ObjectOutputStream(fileOut);
 			out.writeObject(page);
+			out.close();
 			
 			}
 			}
@@ -39,6 +40,8 @@ public class IO
 			fileIn = new FileInputStream(file);
 			ObjectInputStream in= new ObjectInputStream(fileIn);
 			Page p= (Page)in.readObject();
+			
+			in.close();
 			return p;
 			
 		} catch (Exception e) {

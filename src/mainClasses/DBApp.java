@@ -12,18 +12,21 @@ import exceptions.DBEngineException;
 
 
 public class DBApp {
+	ArrayList<Table> tables = new ArrayList<Table>();
 	
 	public void init()
 	{
-		
+		//initializes the arraylist of tables once the program runs
 	}
 	
 	
 	
-	public static void createTable(String strTableName, Hashtable<String, String> htblColNameType, //remove static when not needed 
+	public void createTable(String strTableName, Hashtable<String, String> htblColNameType, //remove static when not needed 
 			Hashtable<String, String> htblColNameRefs, String strKeyColName) throws DBAppException
 	{
-		Table.createTable(strTableName, htblColNameType, htblColNameRefs, strKeyColName);
+		Table table = new Table(strTableName, htblColNameType, htblColNameRefs, strKeyColName);
+		tables.add(table);
+		
 	}
 	
 	public static void createIndex(String strTableName, String strColName) throws DBAppException
@@ -32,10 +35,15 @@ public class DBApp {
 	}
 	
 		
-	public static void insertIntoTable(String strTableName, Hashtable<String, String> htblColNameValue) throws 
+	public void insertIntoTable(String strTableName, Hashtable<String, String> htblColNameValue) throws 
 		DBAppException, IOException
 	{
-		Table.insertIntoTable(strTableName, htblColNameValue);
+		for( Table t: tables)
+		{ 
+			if(t.name.equals(strTableName))
+				
+		    t.insertIntoTable(strTableName, htblColNameValue);
+		}
 	}
 	
 	
@@ -59,7 +67,7 @@ public class DBApp {
 	
 	public void saveAll() throws DBEngineException
 	{
-		
+		//saves to page at the end of all operations
 	}
 	
 	public static void main(String[]args) throws DBAppException, IOException , ClassNotFoundException
@@ -76,7 +84,7 @@ public class DBApp {
 		
 		
 		h2.put("Country", "Country.ID");
-		createTable("Employee", h1, h2, "ID");
+		//createTable("Employee", h1, h2, "ID");
 		//System.out.println(tableExists("Employe"));
 		//System.out.println(colExists("Employee","I"));
 		
@@ -90,11 +98,11 @@ public class DBApp {
 		//createTable("Kellner", h3, h2, "id");
 		
 		
-		ArrayList cols = Table.ListofCols("Employee");
-		for (int i = 0; i < cols.size(); i++) 
-		{
+	//	ArrayList cols = Table.ListofCols("Employee");
+	//	for (int i = 0; i < cols.size(); i++) 
+	//	{
 		//	System.out.println(cols.get(i));
-		}
+	//	}
 		
 		Hashtable h4 = new Hashtable();
 		h4.put("ID", "1");
@@ -103,10 +111,17 @@ public class DBApp {
 		h4.put("Start_Date", "january");
 		h4.put("Country", "egypt");
 		
-		insertIntoTable("Employee", h4);
+		DBApp db = new DBApp();
+		db.createTable("Employee", h1, h2, "ID");
 		
-	//	Page page = Table.retrieve();
-	//	page.display();
+		db.insertIntoTable("Employee", h4);
+		
+		Table employee = db.tables.get(0);
+		Page page = employee.retrieve();
+		page.display();
+		
+		
+		
 		
 	}
 	

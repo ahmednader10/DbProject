@@ -19,6 +19,7 @@ import java.util.NoSuchElementException;
 import exceptions.DBAppException;
 
 public class Table implements Serializable{
+	String name;
 	static boolean validTableName = true;
 	static String metadata = "metadata";
 	static boolean metadataIsCreated = false;
@@ -27,7 +28,7 @@ public class Table implements Serializable{
 	static transient ArrayList<Page> pages= new ArrayList<Page>(); 
 	static int pageCount = 0;
 	ArrayList<String> refs;
-	static Page lastPage = null;
+	 static Page lastPage = null;
 	static int recordsNumber = 0;
 	static int noOfCols;
 	
@@ -36,7 +37,7 @@ public class Table implements Serializable{
 		pages  = new ArrayList<Page>();
 		refs = new ArrayList<String>(); 
 	}
-	public static ArrayList ListofCols(String strTableName) {
+	public ArrayList ListofCols(String strTableName) {
 		BufferedReader fileReader = null;
 		String COMMA_DELIMITER = ",";
 		ArrayList cols = new ArrayList();
@@ -76,7 +77,7 @@ public class Table implements Serializable{
 		
 		
 	}
-	public static boolean tableExists( String strTableName) {
+	public boolean tableExists( String strTableName) {
 		BufferedReader fileReader = null;
 		String COMMA_DELIMITER = ",";
 		
@@ -114,9 +115,9 @@ public class Table implements Serializable{
 		}
 		return false;
 	}
-	public static void createTable(String strTableName, Hashtable<String, String> htblColNameType, 
+	public Table(String strTableName, Hashtable<String, String> htblColNameType, 
 			Hashtable<String, String> htblColNameRefs, String strKeyColName) throws DBAppException
-	{
+	{    name=strTableName;
 		final String COMMA_DELIMITER = ",";
 		final String NEW_LINE_SEPARATOR = "\n";
 		final String FILE_HEADER = "TableName,ColumnName,ColumnType,Key,Indexed,References";
@@ -236,7 +237,7 @@ public class Table implements Serializable{
 	    
 	}
 	
-	public static void createTableHelper(String strTableName)
+	public void createTableHelper(String strTableName)
 	{
 		validTableName = true;
 		BufferedReader fileReader = null;
@@ -293,7 +294,7 @@ public class Table implements Serializable{
 		}
 	}
 	
-	public static void insertIntoTable(String strTableName, Hashtable<String, String> htblColNameValue) 
+	public void insertIntoTable(String strTableName, Hashtable<String, String> htblColNameValue) 
 	throws DBAppException, IOException
 	{
 		
@@ -316,6 +317,7 @@ public class Table implements Serializable{
 			}
 			else 
 			{
+				//still need to check for insertion for the second time
 
 				file = new File(lastPage.name+".ser");
 				lastPage = IO.readPage(file);
@@ -335,10 +337,11 @@ public class Table implements Serializable{
 				}
 				 
 			  }
-					for (int i = 1; i < lastPage.records[0].length; i++) 
-					{
+					
+		
 							while (e1.hasMoreElements()) 
 							{
+								int i=1;
 								String key = (String) e1.nextElement();
 								  if (!colExists(strTableName, key))
 								  {
@@ -346,12 +349,18 @@ public class Table implements Serializable{
 									  return;  
 								  }
 								  
-											if (lastPage.records[0][i] == key)
-											lastPage.records[++recordsNumber][i] = htblColNameValue.get(key);
+											
+											
+											lastPage.records[i][++recordsNumber] = htblColNameValue.get(key); 
+								
+											i++;
 				
 							}
-					}
-					
+							
+							
+							
+				
+				
 					IO.savePage(lastPage, file);
 						      
 				}
@@ -363,13 +372,14 @@ public class Table implements Serializable{
 			
 		}
 	
-	public static Page retrieve() 
+	public  Page retrieve() 
 	{
 		File file = new File("Employee1.ser");
-		lastPage = (Page)IO.readPage(file);
+		lastPage = IO.readPage(file);
 		return lastPage;
 	}
-	public static boolean colExists(String strTableName , String Colname) {
+	
+	public boolean colExists(String strTableName , String Colname) {
 		BufferedReader fileReader = null;
 		String COMMA_DELIMITER = ",";
 		
