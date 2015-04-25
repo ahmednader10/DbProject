@@ -111,13 +111,23 @@ public class DBApp {
 		h4.put("Start_Date", "january");
 		h4.put("Country", "egypt");
 		
+		Hashtable h5 = new Hashtable();
+		h5.put("ID", "2");
+		h5.put("Name", "mohamed");
+		h5.put("Dept", "cs");
+		h5.put("Start_Date", "january");
+		h5.put("Country", "egypt");
+		
 		DBApp db = new DBApp();
 		db.createTable("Employee", h1, h2, "ID");
 		
 		db.insertIntoTable("Employee", h4);
 		
+		db.insertIntoTable("Employee", h5);
+		
 		Table employee = db.tables.get(0);
 		Page page = employee.retrieve();
+		//System.out.println(employee.keyExists("Employee", "12"));
 		page.display();
 		
 		

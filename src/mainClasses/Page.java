@@ -36,6 +36,8 @@ public class Page implements Serializable {
 	}
 	
 	public  void display() {
+		 
+		
 		for (int i = 0; i < records.length ; i++)
 		{
 			
@@ -49,6 +51,8 @@ public class Page implements Serializable {
 			System.out.println();
 		}
 	}
+	
+	
 	
 	
 	

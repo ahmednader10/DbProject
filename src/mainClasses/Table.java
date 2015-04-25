@@ -314,6 +314,7 @@ public class Table implements Serializable{
 				file = new File(strTableName + pageCount + ".ser");
 				lastPage = x;
 				pages.add(lastPage);
+				
 			}
 			else 
 			{
@@ -321,6 +322,7 @@ public class Table implements Serializable{
 
 				file = new File(lastPage.name+".ser");
 				lastPage = IO.readPage(file);
+				
 			}
 			
 			Enumeration e1 = htblColNameValue.keys();
@@ -329,6 +331,7 @@ public class Table implements Serializable{
 			
 			if (lastPage.isEmpty())
 			  {
+				
 				ArrayList cols = ListofCols(strTableName);
 				int j = 1;
 				for (int i = 0; i < cols.size(); i++) {
@@ -348,11 +351,16 @@ public class Table implements Serializable{
 									  System.out.println("Invalid column name" + key);
 									  return;  
 								  }
+								  if (keyExists(strTableName, key))
+								  {
+									  System.out.println("can't insert duplicate records");
+									  return;  
+								  }
 								  
 											
 											
 											lastPage.records[i][++recordsNumber] = htblColNameValue.get(key); 
-								
+										//	System.out.println(lastPage.records[i][recordsNumber]);
 											i++;
 				
 							}
@@ -372,10 +380,25 @@ public class Table implements Serializable{
 			
 		}
 	
+	public boolean keyExists(String tablename,String key) {
+		for (Page p :pages)
+		{
+			for(int i=0; i<p.records.length;i++)
+			{
+				for(int j =0;j<p.records[i].length;j++) 
+				{
+					if (p.records[i][j] == key)
+						return true;
+				}
+			}
+		}
+		return false;
+	}
 	public  Page retrieve() 
 	{
 		File file = new File("Employee1.ser");
 		lastPage = IO.readPage(file);
+		
 		return lastPage;
 	}
 	

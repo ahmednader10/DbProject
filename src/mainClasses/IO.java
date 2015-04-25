@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import mainClasses.AppendingObjectOutputStream;
+
 public class IO 
 {
 	
@@ -19,12 +21,21 @@ public class IO
 
 			if (!file.exists()) {
 			FileOutputStream fileOut = new FileOutputStream(file,true);
-			
+			//System.out.println("1");
 			out = new ObjectOutputStream(fileOut);
 			out.writeObject(page);
 			out.close();
 			
 			}
+			else {
+				FileOutputStream fileOut = new FileOutputStream(file,true);
+				out = new AppendingObjectOutputStream(fileOut);
+				//System.out.println("2");
+				out.writeObject(page);
+				out.close();
+				
+			}
+		
 			}
 			catch(Exception e) 
 			{
