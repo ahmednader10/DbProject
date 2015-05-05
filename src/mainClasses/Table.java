@@ -322,7 +322,7 @@ public class Table implements Serializable{
 
 				file = new File(lastPage.name+".ser");
 				lastPage = IO.readPage(file);
-				
+				System.out.println("else");
 			}
 			
 			Enumeration e1 = htblColNameValue.keys();
@@ -341,7 +341,7 @@ public class Table implements Serializable{
 				 
 			  }
 					
-		
+					System.out.println(lastPage.name);
 							while (e1.hasMoreElements()) 
 							{
 								int i=1;
@@ -360,7 +360,7 @@ public class Table implements Serializable{
 											
 											
 											lastPage.records[i][++recordsNumber] = htblColNameValue.get(key); 
-										//	System.out.println(lastPage.records[i][recordsNumber]);
+											//System.out.println(lastPage.records[i][recordsNumber]);
 											i++;
 				
 							}

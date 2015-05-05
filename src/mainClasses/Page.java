@@ -40,13 +40,17 @@ public class Page implements Serializable {
 		
 		for (int i = 0; i < records.length ; i++)
 		{
-			
-			for(int j = 0; j < records[i].length; j++) 
+			System.out.print("4");
+			for(int j = 1; j < records[i].length; j++) 
 			{
 				
 				
 				if (records [i][j] != null) 
+				{
 					System.out.print(records[i][j]+" ");
+					
+				}
+				
 			}
 			System.out.println();
 		}

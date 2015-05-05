@@ -30,7 +30,7 @@ public class IO
 			else {
 				FileOutputStream fileOut = new FileOutputStream(file,true);
 				out = new AppendingObjectOutputStream(fileOut);
-				//System.out.println("2");
+				System.out.println("2");
 				out.writeObject(page);
 				out.close();
 				
