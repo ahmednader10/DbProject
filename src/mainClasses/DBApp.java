@@ -5,6 +5,7 @@ package mainClasses;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import exceptions.DBAppException;
 import exceptions.DBEngineException;
@@ -12,11 +13,12 @@ import exceptions.DBEngineException;
 
 
 public class DBApp {
-	ArrayList<Table> tables = new ArrayList<Table>();
+	ArrayList<Table> tables;
 	
 	public void init()
 	{
 		//initializes the arraylist of tables once the program runs
+		 tables = new ArrayList<Table>();
 	}
 	
 	
@@ -47,23 +49,42 @@ public class DBApp {
 	}
 	
 	
-	public static void deleteFromTable(String strTableName, Hashtable<String, String> htblColNameValue, 
+	public void deleteFromTable(String strTableName, Hashtable<String, String> htblColNameValue, 
 			String strOperator) throws DBEngineException
 	{
 		//deletion.deleteFromTable(strTableName, htblColNameValue,  strOperator);
+		
+		for( Table t: tables)
+		{ 
+			if(t.name.equals(strTableName))
+				
+		    t.deleteFromTable(strTableName, htblColNameValue, strOperator);
+		}
 	}
 	
-	/*public Iterator selectValueFromTable(String strTable, Hashtable<String, String> htblColNameValue, 
+	public Iterator selectValueFromTable(String strTable, Hashtable<String, String> htblColNameValue, 
 			String strOperator) throws DBEngineException
 	{
-		
+		for( Table t: tables)
+		{ 
+			if(t.name.equals(strTable))
+				
+		    return t.selectValueFromTable(strTable, htblColNameValue, strOperator);
+		}
+		return null;
 	}
 	
 	public Iterator selectRangeFromTable(String strTable, Hashtable<String, String> htblColNameRange, 
 			String strOperator) throws DBEngineException
 	{
-		
-	}*/
+		for( Table t: tables)
+		{ 
+			if(t.name.equals(strTable))
+				
+		    return t.selectRangeFromTable(strTable, htblColNameRange, strOperator);
+		}
+		return null;
+	}
 	
 	public void saveAll() throws DBEngineException
 	{
@@ -85,7 +106,7 @@ public class DBApp {
 		
 		h2.put("Country", "Country.ID");
 		//createTable("Employee", h1, h2, "ID");
-		//System.out.println(tableExists("Employe"));
+		//System.out.println(tableExists("Employee"));
 		//System.out.println(colExists("Employee","I"));
 		
 		
@@ -111,23 +132,14 @@ public class DBApp {
 		h4.put("Start_Date", "january");
 		h4.put("Country", "egypt");
 		
-		Hashtable h5 = new Hashtable();
-		h5.put("ID", "2");
-		h5.put("Name", "mohamed");
-		h5.put("Dept", "cs");
-		h5.put("Start_Date", "january");
-		h5.put("Country", "egypt");
-		
 		DBApp db = new DBApp();
+		db.init();
 		db.createTable("Employee", h1, h2, "ID");
 		
 		db.insertIntoTable("Employee", h4);
 		
-		db.insertIntoTable("Employee", h5);
-		
 		Table employee = db.tables.get(0);
 		Page page = employee.retrieve();
-		//System.out.println(employee.keyExists("Employee", "12"));
 		page.display();
 		
 		

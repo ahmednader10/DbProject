@@ -14,8 +14,10 @@ import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+
 import exceptions.DBAppException;
 
 public class Table implements Serializable{
@@ -314,7 +316,6 @@ public class Table implements Serializable{
 				file = new File(strTableName + pageCount + ".ser");
 				lastPage = x;
 				pages.add(lastPage);
-				
 			}
 			else 
 			{
@@ -322,7 +323,6 @@ public class Table implements Serializable{
 
 				file = new File(lastPage.name+".ser");
 				lastPage = IO.readPage(file);
-				System.out.println("else");
 			}
 			
 			Enumeration e1 = htblColNameValue.keys();
@@ -331,7 +331,6 @@ public class Table implements Serializable{
 			
 			if (lastPage.isEmpty())
 			  {
-				
 				ArrayList cols = ListofCols(strTableName);
 				int j = 1;
 				for (int i = 0; i < cols.size(); i++) {
@@ -341,7 +340,7 @@ public class Table implements Serializable{
 				 
 			  }
 					
-					System.out.println(lastPage.name);
+		
 							while (e1.hasMoreElements()) 
 							{
 								int i=1;
@@ -351,16 +350,11 @@ public class Table implements Serializable{
 									  System.out.println("Invalid column name" + key);
 									  return;  
 								  }
-								  if (keyExists(strTableName, key))
-								  {
-									  System.out.println("can't insert duplicate records");
-									  return;  
-								  }
 								  
 											
 											
 											lastPage.records[i][++recordsNumber] = htblColNameValue.get(key); 
-											//System.out.println(lastPage.records[i][recordsNumber]);
+								
 											i++;
 				
 							}
@@ -380,25 +374,10 @@ public class Table implements Serializable{
 			
 		}
 	
-	public boolean keyExists(String tablename,String key) {
-		for (Page p :pages)
-		{
-			for(int i=0; i<p.records.length;i++)
-			{
-				for(int j =0;j<p.records[i].length;j++) 
-				{
-					if (p.records[i][j] == key)
-						return true;
-				}
-			}
-		}
-		return false;
-	}
 	public  Page retrieve() 
 	{
 		File file = new File("Employee1.ser");
 		lastPage = IO.readPage(file);
-		
 		return lastPage;
 	}
 	
@@ -440,6 +419,318 @@ public class Table implements Serializable{
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	
+	
+	public boolean deleteFromTable(String strTableName, Hashtable<String, String> htblColNameValue, 
+			String strOperator) {
+		if (!tableExists(strTableName)) {
+			return false;
+		}
+		else {
+			boolean deleted = false;
+			Enumeration cols;
+			String col;
+			cols = htblColNameValue.keys();
+			while(cols.hasMoreElements()) {
+				col = (String) cols.nextElement();
+				if (!colExists(strTableName, col)) {
+					return false;
+				}
+			}
+			if (strOperator.equalsIgnoreCase("OR")) {
+				Enumeration or;
+				or = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					while (or.hasMoreElements()) {
+						col = (String) or.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							if (htblColNameValue.get(col).equals(currentPage.records[i][j])) {
+								currentPage.records[0][j] = "-1";
+								deleted = true;
+							}
+						}
+					}
+				}
+				return deleted;
+			}
+			else if (strOperator.equalsIgnoreCase("AND")) {
+				int [] tmp = null;
+				int fieldCount = htblColNameValue.size();
+				Enumeration and;
+				and = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					tmp = new int [currentPage.records[0].length];
+					while (and.hasMoreElements()) {
+						col = (String) and.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							if (htblColNameValue.get(col).equals(currentPage.records[i][j])) {
+								tmp[j]++;
+							}
+						}
+					}
+					for (int i = 0; i < tmp.length; i++) {
+						if (tmp[i] == fieldCount) {
+							currentPage.records[0][i] = "-1";
+							deleted = true;
+						}
+					}
+				}
+				return deleted;
+			}
+			else {
+				Enumeration singleRecord;
+				singleRecord = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					while (singleRecord.hasMoreElements()) {
+						col = (String) singleRecord.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							if (htblColNameValue.get(col).equals(currentPage.records[i][j])) {
+								currentPage.records[0][j] = "-1";
+								deleted = true;
+							}
+						}
+					}
+				}
+				return deleted;
+			}
+		}
+	}
+	
+	public Iterator selectValueFromTable(String strTableName, Hashtable<String, String> htblColNameValue, 
+			String strOperator) {
+		if (!tableExists(strTableName)) {
+			return null;
+		}
+		else {
+			ArrayList<Record> records = new ArrayList<Record>();
+			Record currentRecord = null;
+			Enumeration cols;
+			String col;
+			cols = htblColNameValue.keys();
+			while(cols.hasMoreElements()) {
+				col = (String) cols.nextElement();
+				if (!colExists(strTableName, col)) {
+					return null;
+				}
+			}
+			currentRecord.record = new String[pages.get(0).records.length];
+			if (strOperator.equalsIgnoreCase("OR")) {
+				Enumeration or;
+				or = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					while (or.hasMoreElements()) {
+						col = (String) or.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							if (htblColNameValue.get(col).equals(currentPage.records[i][j])) {
+								for(int z = 0; z < currentPage.records.length; z++) {
+									currentRecord.record[z] = currentPage.records[z][j];
+								}
+								records.add(currentRecord);
+							}
+						}
+					}
+				}
+				return (Iterator) records;
+			}
+			else if (strOperator.equalsIgnoreCase("AND")) {
+				int [] tmp = null;
+				int fieldCount = htblColNameValue.size();
+				Enumeration and;
+				and = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					tmp = new int [currentPage.records[0].length];
+					while (and.hasMoreElements()) {
+						col = (String) and.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							if (htblColNameValue.get(col).equals(currentPage.records[i][j])) {
+								tmp[j]++;
+							}
+						}
+					}
+					for (int i = 0; i < tmp.length; i++) {
+						if (tmp[i] == fieldCount) {
+							for(int z = 0; z < currentPage.records.length; z++) {
+								currentRecord.record[z] = currentPage.records[z][i];
+							}
+							records.add(currentRecord);
+						}
+					}
+				}
+				return (Iterator) records;
+			}
+			else {
+				Enumeration single;
+				single = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					while (single.hasMoreElements()) {
+						col = (String) single.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							if (htblColNameValue.get(col).equals(currentPage.records[i][j])) {
+								for(int z = 0; z < currentPage.records.length; z++) {
+									currentRecord.record[z] = currentPage.records[z][j];
+								}
+								records.add(currentRecord);
+							}
+						}
+					}
+				}
+				return (Iterator) records;
+			}
+		}
+	}
+	
+	public Iterator selectRangeFromTable(String strTableName, Hashtable<String, String> htblColNameValue, 
+			String strOperator) {
+		if (!tableExists(strTableName)) {
+			return null;
+		}
+		else {
+			ArrayList<Record> records = new ArrayList<Record>();
+			Record currentRecord = null;
+			Enumeration cols;
+			String col;
+			String col1;
+			String col2;
+			cols = htblColNameValue.keys();
+			while(cols.hasMoreElements()) {
+				col = (String) cols.nextElement();
+				if (!colExists(strTableName, col)) {
+					return null;
+				}
+			}
+			currentRecord.record = new String[pages.get(0).records.length];
+			if (strOperator.equalsIgnoreCase("OR")) {
+				Enumeration or;
+				or = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					while (or.hasMoreElements()) {
+						col1 = (String) or.nextElement();
+						col2 = (String) or.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col1.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							int current = Integer.parseInt(currentPage.records[i][j]);
+							int min = Integer.parseInt(htblColNameValue.get(col1));
+							int max = Integer.parseInt(htblColNameValue.get(col2));
+							if (current >= min && current <= max) {
+								for(int z = 0; z < currentPage.records.length; z++) {
+									currentRecord.record[z] = currentPage.records[z][j];
+								}
+								records.add(currentRecord);
+							}
+						}
+					}
+				}
+				return (Iterator) records;
+			}
+			else if (strOperator.equalsIgnoreCase("AND")) {
+				int [] tmp = null;
+				int fieldCount = htblColNameValue.size()/2;
+				Enumeration and;
+				and = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					tmp = new int [currentPage.records[0].length];
+					while (and.hasMoreElements()) {
+						col1 = (String) and.nextElement();
+						col2 = (String) and.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col1.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							int current = Integer.parseInt(currentPage.records[i][j]);
+							int min = Integer.parseInt(htblColNameValue.get(col1));
+							int max = Integer.parseInt(htblColNameValue.get(col2));
+							if (current >= min && current <= max) {
+								tmp[j]++;
+							}
+						}
+					}
+					for (int i = 0; i < tmp.length; i++) {
+						if (tmp[i] == fieldCount) {
+							for(int z = 0; z < currentPage.records.length; z++) {
+								currentRecord.record[z] = currentPage.records[z][i];
+							}
+							records.add(currentRecord);
+						}
+					}
+				}
+				return (Iterator) records;
+			}
+			else {
+				Enumeration oneRecordOnly;
+				oneRecordOnly = htblColNameValue.keys();
+				for (Page currentPage: pages) {
+					while (oneRecordOnly.hasMoreElements()) {
+						col1 = (String) oneRecordOnly.nextElement();
+						col2 = (String) oneRecordOnly.nextElement();
+						int i = 0;
+						for (i = 1; i <= currentPage.records.length; i++) {
+							if (col1.equals(currentPage.records[i][0])) {
+								break;
+							}
+						}
+						for (int j = 0; j <= currentPage.records[i].length; j++) {
+							int current = Integer.parseInt(currentPage.records[i][j]);
+							int min = Integer.parseInt(htblColNameValue.get(col1));
+							int max = Integer.parseInt(htblColNameValue.get(col2));
+							if (current >= min && current <= max) {
+								for(int z = 0; z < currentPage.records.length; z++) {
+									currentRecord.record[z] = currentPage.records[z][j];
+								}
+								records.add(currentRecord);
+							}
+						}
+					}
+				}
+				return (Iterator) records;
+			}
+		}
 	}
 
 }
